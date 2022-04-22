@@ -13,7 +13,14 @@ Tested OS: `openSUSE LEAP 15.3`/`x86_64`
 
 You need to install at least packages:
 ```bash
-sudo zypper in cmake cmake-full gcc-c++ gcc grpc-devel protobuf-devel libprotobuf-c-devel
+sudo zypper in git-core cmake cmake-full gcc-c++ gcc grpc-devel protobuf-devel libprotobuf-c-devel
+```
+Now checkout this source:
+```bash
+mkdir -p ~/projects
+cd ~/projects
+git clone https://github.com/hpaluch-pil/grpc-hello-cpp.git
+cd grpc-hello-cpp
 ```
 
 Now you can build binaries using standard cmake commands:
