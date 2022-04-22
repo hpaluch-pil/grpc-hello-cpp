@@ -40,6 +40,83 @@ In another one run client:
 ```
 You should see debug messages on both client and server.
 
+## Exploring Server reflection
+
+This Google's example includes Server reflection that
+allows introspection of services by gRPC clients as described
+on https://grpc.github.io/grpc/cpp/md_doc_server_reflection_tutorial.html
+
+However it seems that openSUSE 15.3 does not include `grpc_cli` client,
+so we have to build it ourselves:
+- install:
+  ```bash
+  sudo zypper in grpc-source bazel python-devel python-xml
+  ```
+- to build it with hostile bazel tool (never encountered such tool as bazel):
+  ```bash
+  cd /usr/src/grpc/test/cpp/util
+  # may try: "bazel query ..." to see targets in current dir
+  bazel build //test/cpp/util:grpc_cli 
+  ```
+- now wait around 30minutes...
+- and notice last few lines of output:
+  ```
+Target //test/cpp/util:grpc_cli up-to-date:
+  /home/ansible/.cache/bazel/_bazel_ansible/7823a61af4ef74a2c6\
+  09c17362cff8ed/execroot/com_github_grpc_grpc/bazel-out/\
+  k8-fastbuild/bin/test/cpp/util/grpc_cli
+  ```
+- and rather copy above path to something like `/usr/local/bin`...
+
+Now we can follow instructions 
+from: https://grpc.github.io/grpc/cpp/md_doc_server_reflection_tutorial.html
+
+On one terminal run example server:
+```bash
+~/tmp/build-grpc/greeter_server
+
+Server listening on 0.0.0.0:50051
+```
+
+On another terminal query our service using:
+```bash
+$ grpc_cli ls 127.0.0.1:50051
+
+helloworld.Greeter
+grpc.reflection.v1alpha.ServerReflection
+grpc.health.v1.Health
+
+$ grpc_cli ls 127.0.0.1:50051 helloworld.Greeter
+
+SayHello
+
+# add -l to see more details on RPC call:
+$ rpc_cli ls 127.0.0.1:50051 helloworld.Greeter -l
+
+filename: helloworld.proto
+package: helloworld;
+service Greeter {
+  rpc SayHello(helloworld.HelloRequest) returns (helloworld.HelloReply) {}
+}
+
+# to see argument(s) we have to send we can use "type" command:
+$ grpc_cli type 127.0.0.1:50051 helloworld.HelloRequest
+
+message HelloRequest {
+  string name = 1;
+}
+
+$ grpc_cli call 127.0.0.1:50051 SayHello "name: '$USER'"
+
+connecting to 127.0.0.1:50051
+message: "Hello ansible"
+
+Rpc succeeded with OK status
+```
+
+And that's all!
+
+
 ## Notes
 
 Most of the grpc(++) detection code is from this package:
@@ -58,5 +135,5 @@ SUSE will someday provide cmake package files for both packages.
 
 NOTE: Although there is no Protobuf's cmake package provided
 by `protobuf-devel`, it is actually provided by `make-full` rpm package.
-so the `find_package(Protobuf REQUIRED)` works...
+So the `find_package(Protobuf REQUIRED)` works without problem.
 
