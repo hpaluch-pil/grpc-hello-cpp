@@ -13,7 +13,7 @@ Tested OS: `openSUSE LEAP 15.3`/`x86_64`
 
 You need to install at least packages:
 ```bash
-sudo zypper in git-core cmake cmake-full gcc-c++ gcc grpc-devel protobuf-devel libprotobuf-c-devel
+sudo zypper in git-core gcc-c++ gcc
 ```
 Now checkout this source:
 ```bash
@@ -21,6 +21,13 @@ mkdir -p ~/projects
 cd ~/projects
 git clone https://github.com/hpaluch-pil/grpc-hello-cpp.git
 cd grpc-hello-cpp
+```
+
+### Setup with cmake
+
+Install these packages:
+```bash
+sudo zypper in cmake cmake-full grpc-devel protobuf-devel libprotobuf-c-devel
 ```
 
 Now you can build binaries using standard cmake commands:
@@ -40,6 +47,25 @@ In another one run client:
 ```
 You should see debug messages on both client and server.
 
+### Setup with Bazel
+
+Highly epxerimental. Based on:
+- https://grpc.io/blog/bazel-rules-protobuf/
+
+Install these additional packages:
+```bash
+sudo zypper in bazel python-devel python-xml
+```
+
+Hmm, we can't use:
+- https://github.com/pubref/rules_protobuf
+Because of FileType error
+
+So have to use:
+- https://github.com/stackb/rules_proto
+
+
+
 ## Exploring Server reflection
 
 This Google's example includes Server reflection that
@@ -52,7 +78,7 @@ so we have to build it ourselves:
   ```bash
   sudo zypper in grpc-source bazel python-devel python-xml
   ```
-- to build it with hostile bazel tool (never encountered such tool as bazel):
+- to build it with bazel tool:
   ```bash
   cd /usr/src/grpc/test/cpp/util
   # may try: "bazel query ..." to see targets in current dir
