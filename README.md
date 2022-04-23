@@ -97,6 +97,13 @@ so we have to build it ourselves:
   ```bash
   sudo zypper in grpc-source bazel python-devel python-xml
   ```
+- these RPM packages were used:
+  ```
+  bazel3.4-3.4.1-bp153.2.1.x86_64
+  grpc-source-1.25.0-3.2.2.noarch
+  python-xml-2.7.18-150000.38.2.x86_64
+  ```
+
 - to build it with bazel tool:
   ```bash
   cd /usr/src/grpc/test/cpp/util
