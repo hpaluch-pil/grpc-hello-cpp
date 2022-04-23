@@ -52,7 +52,7 @@ set(_REFLECTION grpc++_reflection)
 find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
 
 # Proto file
-get_filename_component(hw_proto "protos/helloworld.proto" ABSOLUTE)
+get_filename_component(hw_proto "helloworld.proto" ABSOLUTE)
 get_filename_component(hw_proto_path "${hw_proto}" PATH)
 
 # Generated sources

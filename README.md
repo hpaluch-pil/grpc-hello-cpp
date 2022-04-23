@@ -49,21 +49,40 @@ You should see debug messages on both client and server.
 
 ### Setup with Bazel
 
-Highly epxerimental. Based on:
+Experimental. Based on:
 - https://grpc.io/blog/bazel-rules-protobuf/
 
 Install these additional packages:
 ```bash
 sudo zypper in bazel python-devel python-xml
 ```
+This bazel version was tested:
+```bash
+$ bazel --version
 
-Hmm, we can't use:
-- https://github.com/pubref/rules_protobuf
-Because of FileType error
+bazel 3.4.1- (@non-git)
+```
 
-So have to use:
-- https://github.com/stackb/rules_proto
+Now invoke this command to build client and server:
+```bash
+bazel build //\:greeter_server //\:greeter_client
+```
+To see all local target try this command:
+```bash
+bazel query ...
+```
+Compiled binaries are symlinked here:
+- `bazel-bin/greeter_client`
+- `bazel-bin/greeter_server`
 
+
+NOTES:
+- can't use now deprecated
+  - https://github.com/pubref/rules_protobuf
+  - Because of FileType error
+- this one is better if you ignore most of official docs and rather
+  copy content of theirs WORKSPACE and BUILD files...
+  - https://github.com/stackb/rules_proto
 
 
 ## Exploring Server reflection

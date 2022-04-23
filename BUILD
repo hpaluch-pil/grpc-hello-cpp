@@ -7,7 +7,7 @@ load("@build_stack_rules_proto//rules:proto_compile.bzl", "proto_compile")
 
 proto_library(
     name = "hello_proto",
-    srcs = ["protos/helloworld.proto"],
+    srcs = ["helloworld.proto"],
     visibility = ["//visibility:public"],
 )
 
