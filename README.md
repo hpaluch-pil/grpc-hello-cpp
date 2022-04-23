@@ -84,6 +84,30 @@ NOTES:
   copy content of theirs WORKSPACE and BUILD files...
   - https://github.com/stackb/rules_proto
 
+WARNING! I had no luck building it on Fedora 35 - type mismatch
+errors on boringssl library:
+```
+ERROR: ~/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/boringssl/BUILD:131:11:
+    Compiling src/crypto/fipsmodule/bcm.c failed: (Exit 1):
+     gcc failed: error executing command /usr/bin/gcc -U_FORTIFY_SOURCE -fstack-protector
+          -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object
+          -fno-omit-frame-pointer -MD -MF ... (remaining 34 argument(s) skipped)
+
+In file included from external/boringssl/src/crypto/fipsmodule/bcm.c:38:
+external/boringssl/src/crypto/fipsmodule/bn/asm/x86_64-gcc.c:427:51: error:
+    argument 2 of type 'const uint64_t[8]' {aka 'const long unsigned int[8]'}
+     with mismatched bound [-Werror=array-parameter=]
+  427 | void bn_sqr_comba8(BN_ULONG r[16], const BN_ULONG a[8]) {
+      |                                    ~~~~~~~~~~~~~~~^~~~
+In file included from external/boringssl/src/crypto/fipsmodule/bn/add.c:64,
+                 from external/boringssl/src/crypto/fipsmodule/bcm.c:37:
+external/boringssl/src/crypto/fipsmodule/bn/internal.h:300:51: note: previously declared as 'const uint64_t[4]' {aka 'const long unsigned int[4]'}
+  300 | void bn_sqr_comba8(BN_ULONG r[16], const BN_ULONG a[4]);
+      |                                    ~~~~~~~~~~~~~~~^~~~
+```
+Similar problems probably reported here:
+- https://github.com/envoyproxy/envoy/issues/18816
+- https://boringssl.googlesource.com/boringssl/+/92c6fbfc4c44dc8462d260d836020d2b793e7804
 
 ## Exploring Server reflection
 
