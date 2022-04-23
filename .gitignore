@@ -1,3 +1,5 @@
+# Bazel links
+/bazel-*
 # vim
 *.swp
 *.tmp

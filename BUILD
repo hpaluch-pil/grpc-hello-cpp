@@ -27,17 +27,17 @@ proto_compile(
 )
 
 proto_cc_library(
-    name = "~ello_cc_library",
-    srcs = ["hello.pb.cc"],
-    hdrs = ["hello.pb.h"],
+    name = "hello_cc_library",
+    srcs = ["helloworld.pb.cc"],
+    hdrs = ["helloworld.pb.h"],
     visibility = ["//visibility:public"],
     deps = ["@com_google_protobuf//:protobuf"],
 )
 
 grpc_cc_library(
     name = "hello_grpc_cc_library",
-    srcs = ["hello.grpc.pb.cc"],
-    hdrs = ["hello.grpc.pb.h"],
+    srcs = ["helloworld.grpc.pb.cc"],
+    hdrs = ["helloworld.grpc.pb.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":hello_cc_library",

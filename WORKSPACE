@@ -28,20 +28,34 @@ http_archive(
 
 )
 
+register_toolchains("@build_stack_rules_proto//toolchain:standard")
+#register_toolchains("@build_stack_rules_proto//toolchain:prebuilt")
 
 load("@build_stack_rules_proto//deps:core_deps.bzl", "core_deps")
+
 core_deps()
 
+load("@build_stack_rules_proto//deps:protobuf_core_deps.bzl", "protobuf_core_deps")
+
+protobuf_core_deps()
+
+load("@build_stack_rules_proto//deps:prebuilt_protoc_deps.bzl", "prebuilt_protoc_deps")
+
+prebuilt_protoc_deps()
+
 load("@build_stack_rules_proto//deps:grpc_core_deps.bzl", "grpc_core_deps")
+
 grpc_core_deps()
 
-load("@build_stack_rules_proto//deps:grpc_deps.bzl", "grpc_deps")
+# ----------------------------------------------------
+# Core gRPC
+# ----------------------------------------------------
+
+load(
+    "@com_github_grpc_grpc//bazel:grpc_deps.bzl",
+    "grpc_deps",
+)
+
 grpc_deps()
 
-# To fix: https://github.com/grpc/grpc/issues/22436
-load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
-grpc_extra_deps()
 
-
-#register_toolchains("@build_stack_rules_proto//toolchain:standard")
-register_toolchains("@build_stack_rules_proto//toolchain:prebuilt")
