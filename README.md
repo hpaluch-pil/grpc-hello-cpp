@@ -28,6 +28,8 @@ Example Bazelisk setup for Linux:
   ```bash
   # on openSUSE LEAP 15.3
   sudo zypper in git-core curl
+  # on Ubuntu 20.04.4 LTS
+  sudo apt-get install git-core curl
   ```
 - now download and install Bazelisk (as `bazel` executable)
   using commands:
@@ -37,6 +39,10 @@ Example Bazelisk setup for Linux:
   chmod +x ~/bin/bazel
   ```
 - under some distribution you may need to reload shell or add `~/bin` to `PATH`
+  ```bash
+  # required on Ubuntu 20.04.4 LTS
+  source ~/.profile
+  ```
 - ensure that you are using your Bazelisk (named as `bazel`):
   ```bash
   which bazel
@@ -50,8 +56,8 @@ In case of Ubuntu 20.04 LTS you can install it with:
 ```bash
 # for openSUSE LEAP 15.3 - tested GCC 7.5.0
 sudo zypper in gcc-c++ gcc
-# for Ubuntu 20.04 LTS
-g++ libc6-dev libstdc++-9-dev
+# for Ubuntu 20.04 LTS - tested GCC 9.4.0
+sudo apt-get install g++
 ```
 
 Under Windows you have to install MSVC 2019 + Windows SDK 10. Please
@@ -78,6 +84,8 @@ bazel build //:greeter_server //:greeter_client
 On openSUSE there were total 1993 Bazel actions and it took
 around 45minut to build (1 CPU, 1GB RAM).
 
+On Ubuntu 20.04.4 LTS there were 1669 actions and it took
+around 39 minutes (2 CPU cores, 2GB RAM).
 
 Compiled binaries are symlinked here:
 - `bazel-bin/greeter_client`
