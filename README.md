@@ -16,9 +16,12 @@ Unfortunately gRCP (that we used) is strongly dependent on Bazel Version:
 Therefore I strongly recommend [Bazelisk](https://github.com/bazelbuild/bazelisk) wrapper
 that will use Bazel version pinned in `.bazelversion` file.
 
-Here is example Bazelisk setup for Ubuntu 20.04 LTS:
+Here is example Bazelisk setup common for all OS:
 
 - download latest Bazelisk release from https://github.com/bazelbuild/bazelisk/releases
+- download binary for your OS and rename it to `bazel` (or `bazel.exe` under Windows) and put it somewhere in your `PATH`
+
+Example Bazelisk setup for Ubuntu 20.04 LTS:
 - for example https://github.com/bazelbuild/bazelisk/releases/download/v1.11.0/bazelisk-linux-amd64
 - using:
   ```bash
@@ -34,10 +37,16 @@ Here is example Bazelisk setup for Ubuntu 20.04 LTS:
   /home/LOGIN/bin/bazel
   ```
 
-We need also to install gcc-g++ compiler:
+You also have to install C++ compiler
+
+In case of Ubuntu 20.04 LTS you can install it with:
 ```bash
 g++ libc6-dev libstdc++-9-dev
 ```
+
+Under Windows you have to install MSVC 2019 + Windows SDK 10.
+
+
 
 Now you can proceed to build...
 
