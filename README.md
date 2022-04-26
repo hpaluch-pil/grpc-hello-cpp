@@ -9,6 +9,40 @@ to rebuild entire Protobuf and gRPC (as is in official Google's guide)
 
 ## Setup
 
+Unfortunately gRCP (that we used) is strongly dependent on Bazel Version:
+- this repo can be build only with Bazel < 5
+- latest gRPC repo can be build with Bzel 5+
+
+Therefore I strongly recommend [Bazelisk](https://github.com/bazelbuild/bazelisk) wrapper
+that will use Bazel version pinned in `.bazelversion` file.
+
+Here is example Bazelisk setup for Ubuntu 20.04 LTS:
+
+- download latest Bazelisk release from https://github.com/bazelbuild/bazelisk/releases
+- for example https://github.com/bazelbuild/bazelisk/releases/download/v1.11.0/bazelisk-linux-amd64
+- using:
+  ```bash
+  mkdir -p ~/bin/
+  curl -fL -o ~/bin/bazel https://github.com/bazelbuild/bazelisk/releases/download/v1.11.0/bazelisk-linux-amd64
+  chmod a+rx ~/bin/bazel
+  ```
+- under some distribution you may need to reload shell or add `~/bin` to `PATH`
+- ensure that you are using your Bazelisk (named as `bazel`):
+  ```bash
+  which bazel
+
+  /home/LOGIN/bin/bazel
+  ```
+
+We need also to install gcc-g++ compiler:
+```bash
+g++ libc6-dev libstdc++-9-dev
+```
+
+Now you can proceed to build...
+
+
+
 Tested OS: `openSUSE LEAP 15.3`/`x86_64`
 
 You need to install at least packages:
