@@ -190,6 +190,85 @@ Similar problems probably reported here:
   - mirror:
   - https://github.com/google/boringssl/commit/92c6fbfc4c44dc8462d260d836020d2b793e7804
   - `pefoley2 authored and CQ bot account: commit-bot@chromium.org committed on Jun 1, 2021`
+       //\:greeter_server //\:greeter_client
+
+So far it produces different build error:
+```
+ERROR: /home/ansible/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/com_github_grpc_grpc/BUILD:1963:16: Compiling src/core/lib/security/authorization/evaluate_args.cc failed: (Exit 1): gcc failed: error executing command /usr/bin/gcc -U_FORTIFY_SOURCE -fstack-protector -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object -fno-omit-frame-pointer '-std=c++0x' -MD -MF ... (remaining 60 argument(s) skipped)
+
+Use --sandbox_debug to see verbose messages from the sandbox
+In file included from external/boringssl/src/include/openssl/ex_data.h:114,
+                 from external/boringssl/src/include/openssl/bio.h:66,
+                 from external/boringssl/src/include/openssl/asn1.h:65,
+                 from external/boringssl/src/include/openssl/x509.h:66,
+                 from external/com_github_grpc_grpc/src/core/tsi/ssl_transport_security.h:29,
+                 from external/com_github_grpc_grpc/src/core/lib/security/security_connector/security_connector.h:33,
+                 from external/com_github_grpc_grpc/src/core/lib/security/credentials/credentials.h:37,
+                 from external/com_github_grpc_grpc/src/core/lib/security/context/security_context.h:28,
+                 from external/com_github_grpc_grpc/src/core/lib/security/authorization/evaluate_args.h:27,
+                 from external/com_github_grpc_grpc/src/core/lib/security/authorization/evaluate_args.cc:21:
+external/boringssl/src/include/openssl/stack.h:446:32: error: 'enable_if_t' is not a member of 'std'
+  446 | struct DeleterImpl<Stack, std::enable_if_t<StackTraits<Stack>::kIsConst>> {
+      |                                ^~~~~~~~~~~
+external/boringssl/src/include/openssl/stack.h:446:32: note: 'std::enable_if_t' is only available from C++14 onwards
+external/boringssl/src/include/openssl/stack.h:446:32: error: 'enable_if_t' is not a member of 'std'
+external/boringssl/src/include/openssl/stack.h:446:32: note: 'std::enable_if_t' is only available from C++14 onwards
+external/boringssl/src/include/openssl/stack.h:446:64: error: type/value mismatch at argument 2 in template parameter list for 'template<class T, class Enable> struct bssl::internal::DeleterImpl'
+  446 | struct DeleterImpl<Stack, std::enable_if_t<StackTraits<Stack>::kIsConst>> {
+      |                                                                ^~~~~~~~
+external/boringssl/src/include/openssl/stack.h:446:64: note:   expected a type, got '(<expression error> < bssl::internal::StackTraits<T>::kIsConst)'
+external/boringssl/src/include/openssl/stack.h:446:72: error: expected unqualified-id before '>' token
+  446 | struct DeleterImpl<Stack, std::enable_if_t<StackTraits<Stack>::kIsConst>> {
+      |                                                                        ^~
+external/boringssl/src/include/openssl/stack.h:453:32: error: 'enable_if_t' is not a member of 'std'
+  453 | struct DeleterImpl<Stack, std::enable_if_t<!StackTraits<Stack>::kIsConst>> {
+      |                                ^~~~~~~~~~~
+external/boringssl/src/include/openssl/stack.h:453:32: note: 'std::enable_if_t' is only available from C++14 onwards
+external/boringssl/src/include/openssl/stack.h:453:32: error: 'enable_if_t' is not a member of 'std'
+external/boringssl/src/include/openssl/stack.h:453:32: note: 'std::enable_if_t' is only available from C++14 onwards
+external/boringssl/src/include/openssl/stack.h:453:65: error: type/value mismatch at argument 2 in template parameter list for 'template<class T, class Enable> struct bssl::internal::DeleterImpl'
+  453 | struct DeleterImpl<Stack, std::enable_if_t<!StackTraits<Stack>::kIsConst>> {
+      |                                                                 ^~~~~~~~
+external/boringssl/src/include/openssl/stack.h:453:65: note:   expected a type, got '(<expression error> < (! bssl::internal::StackTraits<T>::kIsConst))'
+external/boringssl/src/include/openssl/stack.h:453:73: error: expected unqualified-id before '>' token
+  453 | struct DeleterImpl<Stack, std::enable_if_t<!StackTraits<Stack>::kIsConst>> {
+      |                                                                         ^~
+external/boringssl/src/include/openssl/stack.h:504:10: error: 'enable_if_t' in namespace 'std' does not name a template type
+  504 |     std::enable_if_t<StackTraits<Stack>::kIsStack, StackIteratorImpl<Stack>>;
+      |          ^~~~~~~~~~~
+external/boringssl/src/include/openssl/stack.h:504:5: note: 'std::enable_if_t' is only available from C++14 onwards
+  504 |     std::enable_if_t<StackTraits<Stack>::kIsStack, StackIteratorImpl<Stack>>;
+      |     ^~~
+external/boringssl/src/include/openssl/stack.h:511:13: error: 'enable_if_t' in namespace 'std' does not name a template type
+  511 | inline std::enable_if_t<!internal::StackTraits<Stack>::kIsConst, bool>
+      |             ^~~~~~~~~~~
+external/boringssl/src/include/openssl/stack.h:511:8: note: 'std::enable_if_t' is only available from C++14 onwards
+  511 | inline std::enable_if_t<!internal::StackTraits<Stack>::kIsConst, bool>
+      |        ^~~
+external/boringssl/src/include/openssl/stack.h:526:24: error: 'StackIterator' in namespace 'bssl::internal' does not name a template type; did you mean 'StackIteratorImpl'?
+  526 | inline bssl::internal::StackIterator<Stack> begin(const Stack *sk) {
+      |                        ^~~~~~~~~~~~~
+      |                        StackIteratorImpl
+external/boringssl/src/include/openssl/stack.h:531:24: error: 'StackIterator' in namespace 'bssl::internal' does not name a template type; did you mean 'StackIteratorImpl'?
+  531 | inline bssl::internal::StackIterator<Stack> end(const Stack *sk) {
+      |                        ^~~~~~~~~~~~~
+      |                        StackIteratorImpl
+In file included from external/boringssl/src/include/openssl/bytestring.h:20,
+                 from external/boringssl/src/include/openssl/obj.h:62,
+                 from external/boringssl/src/include/openssl/x509.h:76,
+                 from external/com_github_grpc_grpc/src/core/tsi/ssl_transport_security.h:29,
+                 from external/com_github_grpc_grpc/src/core/lib/security/security_connector/security_connector.h:33,
+                 from external/com_github_grpc_grpc/src/core/lib/security/credentials/credentials.h:37,
+                 from external/com_github_grpc_grpc/src/core/lib/security/context/security_context.h:28,
+                 from external/com_github_grpc_grpc/src/core/lib/security/authorization/evaluate_args.h:27,
+                 from external/com_github_grpc_grpc/src/core/lib/security/authorization/evaluate_args.cc:21:
+external/boringssl/src/include/openssl/span.h:104:34: error: 'enable_if_t' in namespace 'std' does not name a template type
+  104 |   using EnableIfContainer = std::enable_if_t<
+      |                                  ^~~~~~~~~~~
+external/boringssl/src/include/openssl/span.h:104:29: note: 'std::enable_if_t' is only available from C++14 onwards
+  104 |   using EnableIfContainer = std::enable_if_t<
+      |                             ^~~
+```
 
 
 ### Setup with cmake

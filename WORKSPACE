@@ -55,6 +55,20 @@ load(
     "grpc_deps",
 )
 
+# Monkey patch to use more recent BoringSSL (normally declared by grpc_deps() below
+# to fix compile errors under GCC 11 which no longer permits
+# array bounds mismatches (for good).
+# fixed in this commitid:
+# - https://github.com/google/boringssl/commit/92c6fbfc4c44dc8462d260d836020d2b793e7804
+# BEWARE: Only commits from branch 'master-with-bazel'
+#         are usable for us (other branches of BoringSSL have no Bazel files)!
+http_archive(
+  name = "boringssl",
+  urls = [ "https://github.com/google/boringssl/archive/7b5527cd39f884b6d1b1178cce2cb6258bc059a4.tar.gz"],
+  sha256 = "05c2ba5084e6769287c2934784724d4d710d92e90823d122246b2430dd68141e",
+  strip_prefix = "boringssl-7b5527cd39f884b6d1b1178cce2cb6258bc059a4",
+)
+
 grpc_deps()
 
 
