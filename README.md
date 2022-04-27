@@ -269,6 +269,34 @@ external/boringssl/src/include/openssl/span.h:104:29: note: 'std::enable_if_t' i
   104 |   using EnableIfContainer = std::enable_if_t<
       |                             ^~~
 ```
+With help of SO:
+```
+git log 139adff9b27eaf0bdaac664ec4c9a7db2fe3f920..HEAD --ancestry-path --merges
+# last one
+commit d0583f510ac4f2f96f423efd31a01d08b6791191
+Merge: c5f0e58e6 da890de1b
+Author: BoringSSL Robot <boringsslrobot@gmail.com>
+Date:   Mon Mar 29 16:29:29 2021 +0000
+
+    update master-with-bazel from master branch
+# show details of merge commit
+git show -m d0583f510ac4f2f96f423efd31a01d08b6791191
+```
+
+Another error with d0583f510ac4f2f96f423efd31a01d08b6791191:
+```
+In file included from external/boringssl/src/crypto/fipsmodule/bcm.c:104:
+external/boringssl/src/crypto/fipsmodule/sha/sha256.c: In function 'SHA224_Final':
+external/boringssl/src/crypto/fipsmodule/sha/sha256.c:122:10: error: 'SHA256_Final' accessing 32 bytes in a region of size 28 [-Werror=stringop-overflow=]
+  122 |   return SHA256_Final(out, ctx);
+      |          ^~~~~~~~~~~~~~~~~~~~~~
+external/boringssl/src/crypto/fipsmodule/sha/sha256.c:122:10: note: referencing argument 1 of type 'uint8_t *' {aka 'unsigned char *'}
+In file included from external/boringssl/src/include/openssl/crypto.h:19,
+                 from external/boringssl/src/crypto/fipsmodule/bcm.c:19:
+external/boringssl/src/include/openssl/sha.h:166:20: note: in a call to function 'SHA256_Final'
+  166 | OPENSSL_EXPORT int SHA256_Final(uint8_t out[SHA256_DIGEST_LENGTH],
+      |                    ^~~~~~~~~~~~
+```
 
 
 ### Setup with cmake

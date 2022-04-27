@@ -64,9 +64,15 @@ load(
 #         are usable for us (other branches of BoringSSL have no Bazel files)!
 http_archive(
   name = "boringssl",
-  urls = [ "https://github.com/google/boringssl/archive/7b5527cd39f884b6d1b1178cce2cb6258bc059a4.tar.gz"],
-  sha256 = "05c2ba5084e6769287c2934784724d4d710d92e90823d122246b2430dd68141e",
-  strip_prefix = "boringssl-7b5527cd39f884b6d1b1178cce2cb6258bc059a4",
+  # this crashes, because it requires C++14 (not enabled by default)
+  #urls = [ "https://github.com/google/boringssl/archive/7b5527cd39f884b6d1b1178cce2cb6258bc059a4.tar.gz"],
+  #sha256 = "05c2ba5084e6769287c2934784724d4d710d92e90823d122246b2430dd68141e",
+  #strip_prefix = "boringssl-7b5527cd39f884b6d1b1178cce2cb6258bc059a4",
+
+  # another commitid: d0583f510ac4f2f96f423efd31a01d08b6791191
+  urls = [ "https://github.com/google/boringssl/archive/d0583f510ac4f2f96f423efd31a01d08b6791191.tar.gz"],
+  sha256 = "fa5a8a9b9991e2d94e904f7f6bb5b94815c4b8cb46bbad1e32dba46218147a6d",
+  strip_prefix = "boringssl-d0583f510ac4f2f96f423efd31a01d08b6791191",
 )
 
 grpc_deps()
