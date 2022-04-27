@@ -28,7 +28,7 @@ Example Bazelisk setup for Linux:
   ```bash
   # on openSUSE LEAP 15.3
   sudo zypper in git-core curl
-  # on Ubuntu 20.04.4 LTS
+  # on Ubuntu 20.04.4 LTS or Debian 11 (bullseye)
   sudo apt-get install git-core curl
   ```
 - now download and install Bazelisk (as `bazel` executable)
@@ -40,7 +40,7 @@ Example Bazelisk setup for Linux:
   ```
 - under some distribution you may need to reload shell or add `~/bin` to `PATH`
   ```bash
-  # required on Ubuntu 20.04.4 LTS
+  # required on Ubuntu 20.04.4 LTS and Debian 11 (bullseye)
   source ~/.profile
   ```
 - ensure that you are using your Bazelisk (named as `bazel`):
@@ -52,11 +52,11 @@ Example Bazelisk setup for Linux:
 
 You also have to install C++ compiler (required by our example
 and underlying libraries). Use following commands:
-In case of Ubuntu 20.04 LTS you can install it with:
 ```bash
 # for openSUSE LEAP 15.3 - tested GCC 7.5.0
 sudo zypper in gcc-c++ gcc
 # for Ubuntu 20.04 LTS - tested GCC 9.4.0
+# and for Debian 11 (bullseye) - tested GCC 10.2.1
 sudo apt-get install g++
 ```
 
@@ -112,6 +112,15 @@ around 39 minutes (2 CPU cores, 2GB RAM).
 Compiled binaries are symlinked here:
 - `bazel-bin/greeter_client`
 - `bazel-bin/greeter_server`
+
+You can run server using:
+```
+bazel run //:greeter_server
+```
+And on another terminal run client using:
+```
+bazel run //:greeter_client
+```
 
 NOTES:
 - can't use now deprecated
