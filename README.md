@@ -60,9 +60,31 @@ sudo zypper in gcc-c++ gcc
 sudo apt-get install g++
 ```
 
-Under Windows you have to install MSVC 2019 + Windows SDK 10. Please
-note that Bazel 4.2.2, that is used for this project seems
-to not work with MSVC 2022 (but works OK with MSVC 2019).
+Windows Notes:
+- we have to follow: https://docs.bazel.build/versions/main/install-windows.html
+- Under Windows you have to install MSVC 2019 + Windows SDK 10.
+- Please note that Bazel 4.2.2, that is used for this project seems
+  to not work with MSVC 2022 (but works OK with MSVC 2019).
+- to avoid this error:
+  ```
+  ERROR: C:/projects/grpc-hello-cpp/BUILD:14:14:
+     Compiling protoc outputs for ["helloworld.proto"] failed: (Exit -1):
+     bash.exe failed: error executing command
+       c:/tools/msys64/usr/bin/bash.exe -c set -euo pipefail
+  ```
+- you have to install MSYS2 into above hardcoded location:
+  - download MSYS2 package:
+    - https://github.com/msys2/msys2-installer/releases/download/2022-03-19/msys2-x86_64-20220319.exe
+  - run installer and override installation
+    path `c:\msys64` to `c:\toos\msys64` (!)
+- now run MSYS terminal and (following Bazel installation guide)
+  run this command:
+  ```
+  pacman -S zip unzip patch diffutils git
+  ```
+- confirm installation/upgrade of packages.
+- now you can proceed with build instructions below...
+
 
 
 Now checkout this source (valid for both Linux
@@ -76,13 +98,13 @@ cd grpc-hello-cpp
 
 And finally invoke build:
 ```bash
-# Linux or GIT Bash
+# Linux
 bazel build //\:greeter_server //\:greeter_client
-# CMD.exe
+# CMD.exe - do NOT use GIT bash
 bazel build //:greeter_server //:greeter_client
 ```
 On openSUSE there were total 1993 Bazel actions and it took
-around 45minut to build (1 CPU, 1GB RAM).
+around 45 minutes to build (1 CPU, 1GB RAM).
 
 On Ubuntu 20.04.4 LTS there were 1669 actions and it took
 around 39 minutes (2 CPU cores, 2GB RAM).
@@ -244,7 +266,6 @@ Rpc succeeded with OK status
 ```
 
 And that's all!
-
 
 ## Notes
 
