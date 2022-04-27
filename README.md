@@ -28,13 +28,15 @@ Example Bazelisk setup for Linux:
   ```bash
   # on openSUSE LEAP 15.3
   sudo zypper in git-core curl
+  # on Fedora 35
+  sudo dnf install git-core curl
   # on Ubuntu 20.04.4 LTS or Debian 11 (bullseye)
   sudo apt-get install git-core curl
   ```
 - now download and install Bazelisk (as `bazel` executable)
   using commands:
   ```bash
-  mkdir -p ~/bin/
+  mkdir -p ~/bin
   curl -fL -o ~/bin/bazel https://github.com/bazelbuild/bazelisk/releases/download/v1.11.0/bazelisk-linux-amd64
   chmod +x ~/bin/bazel
   ```
@@ -55,6 +57,8 @@ and underlying libraries). Use following commands:
 ```bash
 # for openSUSE LEAP 15.3 - tested GCC 7.5.0
 sudo zypper in gcc-c++ gcc
+# on Fedora 35 - tested GCC 11.2.1
+sudo dnf install gcc-c++
 # for Ubuntu 20.04 LTS - tested GCC 9.4.0
 # and for Debian 11 (bullseye) - tested GCC 10.2.1
 sudo apt-get install g++
@@ -130,7 +134,7 @@ NOTES:
   copy content of theirs WORKSPACE and BUILD files...
   - https://github.com/stackb/rules_proto
 
-WARNING! I had no luck building it on Fedora 35 - type mismatch
+WARNING! I had no luck building it on Fedora 35 with GCC 11.2.1 - type mismatch
 errors on boringssl library:
 ```
 ERROR: ~/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/boringssl/BUILD:131:11:
@@ -150,6 +154,31 @@ In file included from external/boringssl/src/crypto/fipsmodule/bn/add.c:64,
 external/boringssl/src/crypto/fipsmodule/bn/internal.h:300:51: note: previously declared as 'const uint64_t[4]' {aka 'const long unsigned int[4]'}
   300 | void bn_sqr_comba8(BN_ULONG r[16], const BN_ULONG a[4]);
       |                                    ~~~~~~~~~~~~~~~^~~~
+```
+More details:
+```
+$ bazel query 'kind(http_archive, //external:boringssl)'
+
+//external:boringssl
+```
+And more interesting:
+```
+bazel query --output build 'deps(//external:boringssl)'
+
+# /home/ansible/projects/grpc-hello-cpp/WORKSPACE:59:10
+http_archive(
+  name = "boringssl",
+  generator_name = "boringssl",
+  generator_function = "grpc_deps",
+  urls = ["https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/067cfd92f4d7da0edfa073b096d090b98a83b860.tar.gz", "https://github.com/google/boringssl/archive/067cfd92f4d7da0edfa073b096d090b98a83b860.tar.gz"],
+  sha256 = "6312f3785ccbbb45f190c1c8877d1b10f41420e3bb65ca5d14b8061621431136",
+  strip_prefix = "boringssl-067cfd92f4d7da0edfa073b096d090b98a83b860",
+)
+# Rule boringssl instantiated at (most recent call last):
+#   /home/ansible/projects/grpc-hello-cpp/WORKSPACE:59:10                                                                               in <toplevel>
+#   /home/ansible/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/com_github_grpc_grpc/bazel/grpc_deps.bzl:150:21 in grpc_deps
+# Rule http_archive defined at (most recent call last):
+#   /home/ansible/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/bazel_tools/tools/build_defs/repo/http.bzl:336:31 in <toplevel>
 ```
 Similar problems probably reported here:
 - https://github.com/envoyproxy/envoy/issues/18816
