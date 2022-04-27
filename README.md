@@ -182,7 +182,14 @@ http_archive(
 ```
 Similar problems probably reported here:
 - https://github.com/envoyproxy/envoy/issues/18816
-- https://boringssl.googlesource.com/boringssl/+/92c6fbfc4c44dc8462d260d836020d2b793e7804
+- referenced commit (that failes on GCC 11) is such:
+  - https://github.com/google/boringssl/commit/067cfd92f4d7da0edfa073b096d090b98a83b860
+  - `BoringSSL Robot committed on Feb 5, 2021`
+- fix commit (from above Issue):
+  - https://boringssl.googlesource.com/boringssl/+/92c6fbfc4c44dc8462d260d836020d2b793e7804
+  - mirror:
+  - https://github.com/google/boringssl/commit/92c6fbfc4c44dc8462d260d836020d2b793e7804
+  - `pefoley2 authored and CQ bot account: commit-bot@chromium.org committed on Jun 1, 2021`
 
 
 ### Setup with cmake
