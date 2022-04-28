@@ -58,8 +58,6 @@ load(
 # Monkey patch to use more recent BoringSSL (normally declared by grpc_deps() below
 # to fix compile errors under GCC 11 which no longer permits
 # array bounds mismatches (for good).
-# fixed in this commitid:
-# - https://github.com/google/boringssl/commit/92c6fbfc4c44dc8462d260d836020d2b793e7804
 # BEWARE: Only commits from branch 'master-with-bazel'
 #         are usable for us (other branches of BoringSSL have no Bazel files)!
 http_archive(
@@ -69,12 +67,17 @@ http_archive(
   #sha256 = "05c2ba5084e6769287c2934784724d4d710d92e90823d122246b2430dd68141e",
   #strip_prefix = "boringssl-7b5527cd39f884b6d1b1178cce2cb6258bc059a4",
 
-  # another commitid: d0583f510ac4f2f96f423efd31a01d08b6791191
-  urls = [ "https://github.com/google/boringssl/archive/d0583f510ac4f2f96f423efd31a01d08b6791191.tar.gz"],
-  sha256 = "fa5a8a9b9991e2d94e904f7f6bb5b94815c4b8cb46bbad1e32dba46218147a6d",
-  strip_prefix = "boringssl-d0583f510ac4f2f96f423efd31a01d08b6791191",
+  # this crashes with SHA224 mismatch error
+  #urls = [ "https://github.com/google/boringssl/archive/d0583f510ac4f2f96f423efd31a01d08b6791191.tar.gz"],
+  #sha256 = "fa5a8a9b9991e2d94e904f7f6bb5b94815c4b8cb46bbad1e32dba46218147a6d",
+  #strip_prefix = "boringssl-d0583f510ac4f2f96f423efd31a01d08b6791191",
+
+  # and finally this commit fixes both BoringSSL array boundary errors
+  urls = [ "https://github.com/google/boringssl/archive/3f0466c7c0ae341e214414989cd92b47d7a59db7.tar.gz"],
+  sha256 = "9c7dd8d2f49d7da006299fc2f19ad55d59c303a14b7c73b3ff6d8a44f061728d",
+  strip_prefix = "boringssl-3f0466c7c0ae341e214414989cd92b47d7a59db7",
+
 )
 
 grpc_deps()
-
 

@@ -136,13 +136,16 @@ NOTES:
 
 WARNING! I had no luck building it on Fedora 35 with GCC 11.2.1 - type mismatch
 errors on boringssl library:
-```
-ERROR: ~/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/boringssl/BUILD:131:11:
-    Compiling src/crypto/fipsmodule/bcm.c failed: (Exit 1):
-     gcc failed: error executing command /usr/bin/gcc -U_FORTIFY_SOURCE -fstack-protector
-          -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object
-          -fno-omit-frame-pointer -MD -MF ... (remaining 34 argument(s) skipped)
 
+
+WARNING! It was really difficutl to find right commit in BoringSSL, that will:
+- fix array bounds mismatches - so GCC will not terminate with error
+- but still support older C++ standards (latest BoringSSL requiers C++14(!)
+- and still build using exiting gRPC base
+
+Original repo caused this error on GCC11
+
+```
 In file included from external/boringssl/src/crypto/fipsmodule/bcm.c:38:
 external/boringssl/src/crypto/fipsmodule/bn/asm/x86_64-gcc.c:427:51: error:
     argument 2 of type 'const uint64_t[8]' {aka 'const long unsigned int[8]'}
@@ -297,6 +300,43 @@ external/boringssl/src/include/openssl/sha.h:166:20: note: in a call to function
   166 | OPENSSL_EXPORT int SHA256_Final(uint8_t out[SHA256_DIGEST_LENGTH],
       |                    ^~~~~~~~~~~~
 ```
+
+Finally this commit is that right one:
+```
+commit 597ffef971dd980b7de5e97a0c9b7ca26eec94bc
+Author: David Benjamin <davidben@google.com>
+Date:   Mon Mar 29 14:45:13 2021 -0400
+
+    Make md32_common.h single-included and use an unsized helper for SHA-256.
+    
+    Similar to
+    https://boringssl-review.googlesource.com/c/boringssl/+/46405,
+    SHA256_Final and SHA224_Final hit array size warnings in the new GCC.
+    The array sizes are, strictly speaking, purely decoration, but this is a
+    good warning so we should be clean with it on.
+    
+    That same change is difficult to apply to md32_common.h because
+    md32_common.h generates the functions for us. md32_common.h is already
+    strange in that it is multiply-included and changes behavior based on
+    macros defined by the caller.
+...
+```
+FInding last merge to `master-with-bazel`
+```
+git checkout master-with-bazel
+git log 597ffef971dd980b7de5e97a0c9b7ca26eec94bc..HEAD --ancestry-path --merges
+# scroll down  to the end
+commit 3f0466c7c0ae341e214414989cd92b47d7a59db7
+Merge: aa1ebf91a 597ffef97
+Author: BoringSSL Robot <boringsslrobot@gmail.com>
+Date:   Tue Jun 1 19:00:48 2021 +0000
+
+    update master-with-bazel from master branch
+# see details
+git show -m 3f0466c7c0ae341e214414989cd92b47d7a59db7
+```
+
+And that's it! Now same source base build with GCC 11 on Fedora 35!
 
 
 ### Setup with cmake
