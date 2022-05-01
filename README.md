@@ -4,8 +4,9 @@ Here is extracted Hello C++ gRPC example
 from https://github.com/grpc/grpc/tree/master/examples/cpp/helloworld
 
 There are now two ways how to build this package:
-1. using `cmake` and RPM packages ins openSUSE 15.3
-1. or using Bazel build utility
+1. using `cmake` and RPM packages in `openSUSE LEAP 15.3`
+1. or using Bazel build utility - tested under openSUSE LEAP 15.3, Debian 11, Fedora 35
+   and Windows 10 with MSVC 2019 Professional
 
 ## Setup using Bazel build tool
 Based on:
@@ -189,7 +190,7 @@ so we have to build it ourselves:
   python-xml-2.7.18-150000.38.2.x86_64
   ```
 
-- to build it with bazel tool:
+- to build it with Bazel tool:
   ```bash
   cd /usr/src/grpc/test/cpp/util
   # may try: "bazel query ..." to see targets in current dir
