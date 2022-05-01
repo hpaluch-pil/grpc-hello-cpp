@@ -126,71 +126,12 @@ And on another terminal run client using:
 bazel run //:greeter_client
 ```
 
-NOTES:
-- can't use now deprecated
-  - https://github.com/pubref/rules_protobuf
-  - Because of FileType error
-- this one is better if you ignore most of official docs and rather
-  copy content of theirs WORKSPACE and BUILD files...
-  - https://github.com/stackb/rules_proto
-
-WARNING! I had no luck building it on Fedora 35 with GCC 11.2.1 - type mismatch
-errors on boringssl library:
-```
-ERROR: ~/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/boringssl/BUILD:131:11:
-    Compiling src/crypto/fipsmodule/bcm.c failed: (Exit 1):
-     gcc failed: error executing command /usr/bin/gcc -U_FORTIFY_SOURCE -fstack-protector
-          -Wall -Wunused-but-set-parameter -Wno-free-nonheap-object
-          -fno-omit-frame-pointer -MD -MF ... (remaining 34 argument(s) skipped)
-
-In file included from external/boringssl/src/crypto/fipsmodule/bcm.c:38:
-external/boringssl/src/crypto/fipsmodule/bn/asm/x86_64-gcc.c:427:51: error:
-    argument 2 of type 'const uint64_t[8]' {aka 'const long unsigned int[8]'}
-     with mismatched bound [-Werror=array-parameter=]
-  427 | void bn_sqr_comba8(BN_ULONG r[16], const BN_ULONG a[8]) {
-      |                                    ~~~~~~~~~~~~~~~^~~~
-In file included from external/boringssl/src/crypto/fipsmodule/bn/add.c:64,
-                 from external/boringssl/src/crypto/fipsmodule/bcm.c:37:
-external/boringssl/src/crypto/fipsmodule/bn/internal.h:300:51: note: previously declared as 'const uint64_t[4]' {aka 'const long unsigned int[4]'}
-  300 | void bn_sqr_comba8(BN_ULONG r[16], const BN_ULONG a[4]);
-      |                                    ~~~~~~~~~~~~~~~^~~~
-```
-More details:
-```
-$ bazel query 'kind(http_archive, //external:boringssl)'
-
-//external:boringssl
-```
-And more interesting:
-```
-bazel query --output build 'deps(//external:boringssl)'
-
-# /home/ansible/projects/grpc-hello-cpp/WORKSPACE:59:10
-http_archive(
-  name = "boringssl",
-  generator_name = "boringssl",
-  generator_function = "grpc_deps",
-  urls = ["https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/067cfd92f4d7da0edfa073b096d090b98a83b860.tar.gz", "https://github.com/google/boringssl/archive/067cfd92f4d7da0edfa073b096d090b98a83b860.tar.gz"],
-  sha256 = "6312f3785ccbbb45f190c1c8877d1b10f41420e3bb65ca5d14b8061621431136",
-  strip_prefix = "boringssl-067cfd92f4d7da0edfa073b096d090b98a83b860",
-)
-# Rule boringssl instantiated at (most recent call last):
-#   /home/ansible/projects/grpc-hello-cpp/WORKSPACE:59:10                                                                               in <toplevel>
-#   /home/ansible/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/com_github_grpc_grpc/bazel/grpc_deps.bzl:150:21 in grpc_deps
-# Rule http_archive defined at (most recent call last):
-#   /home/ansible/.cache/bazel/_bazel_ansible/960abfbfa73fa3cbca4c58830056b902/external/bazel_tools/tools/build_defs/repo/http.bzl:336:31 in <toplevel>
-```
-Similar problems probably reported here:
-- https://github.com/envoyproxy/envoy/issues/18816
-- referenced commit (that failes on GCC 11) is such:
-  - https://github.com/google/boringssl/commit/067cfd92f4d7da0edfa073b096d090b98a83b860
-  - `BoringSSL Robot committed on Feb 5, 2021`
-- fix commit (from above Issue):
-  - https://boringssl.googlesource.com/boringssl/+/92c6fbfc4c44dc8462d260d836020d2b793e7804
-  - mirror:
-  - https://github.com/google/boringssl/commit/92c6fbfc4c44dc8462d260d836020d2b793e7804
-  - `pefoley2 authored and CQ bot account: commit-bot@chromium.org committed on Jun 1, 2021`
-
+WARNING! It was really difficult to find right commit in BoringSSL, that will:
+- fix array bounds mismatches - so GCC will not terminate with error
+- but still support older C++ standards (latest BoringSSL requires C++14(!)
+- and still build using exiting gRPC base
+Finally I found right version of BoringSSL  - see bottom or WORKSPACE
+file for details
 
 ### Setup with cmake
 
@@ -314,7 +255,7 @@ And that's all!
 
 ## Notes
 
-Most of the grpc(++) detection code is from this package:
+Most of the grpc(++) detection code (cmake build) is from this package:
 ```bash
 sudo zypper in rpm-build
 sudo zypper si lightstep-tracer-cpp
