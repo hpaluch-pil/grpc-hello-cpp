@@ -33,19 +33,29 @@ find_package(Threads REQUIRED)
 # Protobuf cmake package is directly provided by cmake:
 # /usr/share/cmake/Modules/FindProtobuf.cmake
 # openSUSE package:  cmake-full
-find_package(Protobuf REQUIRED)
+option(protobuf_MODULE_COMPATIBLE TRUE)
+find_package(Protobuf CONFIG REQUIRED)
 message(STATUS "Using protobuf ${Protobuf_VERSION}")
 set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
 set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
 
-# OpenSUSE has no cmake package for GRPC
-# thus we must fallback to pkg-config (will be not portable to Windows...)
-find_package(PkgConfig REQUIRED)
-pkg_search_module(GRPC REQUIRED grpc)
-message(STATUS "found grpc ${GRPC_VERSION}, libraries: '${GRPC_LIBRARIES}'")
-pkg_search_module(GRPCPP REQUIRED grpc++)
-message(STATUS "found grpc++ ${GRPCPP_VERSION}, libraries: '${GRPCPP_LIBRARIES}'")
-set(_GRPC_GRPCPP "${GRPCPP_LIBRARIES}")
+if(UNIX)
+  # OpenSUSE has no cmake package for GRPC
+  # thus we must fallback to pkg-config (will be not portable to Windows...)
+  find_package(PkgConfig REQUIRED)
+  pkg_search_module(GRPC REQUIRED grpc)
+  message(STATUS "found grpc ${GRPC_VERSION}, libraries: '${GRPC_LIBRARIES}'")
+  pkg_search_module(GRPCPP REQUIRED grpc++)
+  message(STATUS "found grpc++ ${GRPCPP_VERSION}, libraries: '${GRPCPP_LIBRARIES}'")
+  set(_GRPC_GRPCPP "${GRPCPP_LIBRARIES}")
+else()
+  set(GRPC_INSTALL_DIR "c:/libs/grpc")
+  # on Windows use CMake package
+  # Looks for gRPCConfig.cmake file installed by gRPC's cmake installation.
+  find_package(gRPC CONFIG REQUIRED)
+  message(STATUS "Using gRPC ${gRPC_VERSION}")
+  set(_GRPC_GRPCPP gRPC::grpc++ )
+endif()
 
 set(_REFLECTION grpc++_reflection)
 #set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
@@ -91,6 +101,8 @@ foreach(_target
   if(UNIX)
     # we use -DLINUX for any other system than Windows
     target_compile_definitions(${_target} PUBLIC LINUX)
+  else()
+    target_link_directories(${_target} PUBLIC "${GRPC_INSTALL_DIR}/lib")
   endif()
   target_link_libraries(${_target}
     hw_grpc_proto
