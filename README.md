@@ -90,8 +90,6 @@ Windows Notes:
 - confirm installation/upgrade of packages.
 - now you can proceed with build instructions below...
 
-
-
 Now checkout this source (valid for both Linux
 and Windows with `GIT Bash` window):
 ```bash
@@ -136,13 +134,22 @@ file for details
 
 ### Setup with cmake
 
-Tested OS: `openSUSE LEAP 15.3`/`x86_64`
+Tested OS: `Fedora 44`
 
 Install these packages:
 ```bash
-sudo zypper in git-core gcc-c++ gcc
-sudo zypper in cmake cmake-full grpc-devel protobuf-devel libprotobuf-c-devel
+sudo dnf group install c-development
+sudo dnf install git-core grpc-devel cmake
 ```
+
+Outdated:
+> Tested OS: `openSUSE LEAP 15.3`/`x86_64`
+> 
+> Install these packages:
+> ```bash
+> sudo zypper in git-core gcc-c++ gcc
+> sudo zypper in cmake cmake-full grpc-devel protobuf-devel libprotobuf-c-devel
+> ```
 
 Now checkout this source:
 ```bash
@@ -168,8 +175,6 @@ In another one run client:
 ~/tmp/build-grpc/greeter_client
 ```
 You should see debug messages on both client and server.
-
-
 
 ## Exploring Server reflection
 

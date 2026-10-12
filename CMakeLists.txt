@@ -23,7 +23,7 @@ cmake_minimum_required(VERSION 3.5.1)
 
 project(HelloWorld C CXX)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 # available in system as:
 # /usr/share/cmake/Modules/FindThreads.cmake
