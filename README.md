@@ -159,12 +159,9 @@ git clone https://github.com/hpaluch-pil/grpc-hello-cpp.git
 cd grpc-hello-cpp
 ```
 
-Now you can build binaries using standard cmake commands:
+You can build binaries using prepared build script:
 ```bash
-rm -rf ~/tmp/build-grpc
-mkdir -p ~/tmp/build-grpc
-cmake -B ~/tmp/build-grpc
-make -C ~/tmp/build-grpc VERBOSE=1
+./rebuild_linux.sh
 ```
 Now in one terminal run server:
 ```bash
