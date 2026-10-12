@@ -33,8 +33,12 @@ find_package(Threads REQUIRED)
 # Protobuf cmake package is directly provided by cmake:
 # /usr/share/cmake/Modules/FindProtobuf.cmake
 # openSUSE package:  cmake-full
-option(protobuf_MODULE_COMPATIBLE TRUE)
-find_package(Protobuf CONFIG REQUIRED)
+if(UNIX)
+  find_package(Protobuf REQUIRED)
+else()
+  option(protobuf_MODULE_COMPATIBLE TRUE)
+  find_package(Protobuf CONFIG REQUIRED)
+endif()
 message(STATUS "Using protobuf ${Protobuf_VERSION}")
 set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
 set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
