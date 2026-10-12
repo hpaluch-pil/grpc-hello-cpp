@@ -20,6 +20,10 @@
 #include <memory>
 #include <string>
 
+#ifdef LINUX
+#include <time.h>
+#endif
+
 #include <grpcpp/grpcpp.h>
 
 #ifdef BAZEL_BUILD
@@ -72,6 +76,9 @@ class GreeterClient {
 };
 
 int main(int argc, char** argv) {
+#ifdef LINUX
+  struct timespec startTime, endTime;
+#endif
   // Instantiate the client. It requires a channel, out of which the actual RPCs
   // are created. This channel models a connection to an endpoint specified by
   // the argument "--target=" which is the only expected argument.
@@ -101,8 +108,18 @@ int main(int argc, char** argv) {
   GreeterClient greeter(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
   std::string user("world");
+#ifdef LINUX
+  clock_gettime(CLOCK_MONOTONIC,&startTime);
+#endif
   std::string reply = greeter.SayHello(user);
+#ifdef LINUX
+  clock_gettime(CLOCK_MONOTONIC,&endTime);
+#endif
   std::cout << "Greeter received: " << reply << std::endl;
-
+#ifdef LINUX
+  uint64_t time_us = (((endTime.tv_sec * 1000000000ULL + endTime.tv_nsec)
+                    -(startTime.tv_sec * 1000000000ULL + startTime.tv_nsec))/1000ULL);
+  std::cout << "gRPC call took: " << time_us << " [us]" << std::endl;
+#endif
   return 0;
 }
