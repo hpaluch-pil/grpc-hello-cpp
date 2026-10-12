@@ -132,7 +132,7 @@ WARNING! It was really difficult to find right commit in BoringSSL, that will:
 Finally I found right version of BoringSSL  - see bottom or WORKSPACE
 file for details
 
-### Setup with cmake
+### Setup with cmake: Linux
 
 Tested OS: `Fedora 44`
 
@@ -172,6 +172,36 @@ In another one run client:
 ~/tmp/build-grpc/greeter_client
 ```
 You should see debug messages on both client and server.
+
+### Setup with CMake: Windows
+
+You need to install:
+* CMake, tested version: 3.20.2
+* Visual Studio 2019 with `C++ Desktop Workload`
+* Git for Windows, tested versino 2.53 (but DO NOT USE version 2.54! - it crashes while checking out gRPC,
+  see https://github.com/git-for-windows/git/issues/6210)
+
+First in Git Bash build and install gRPC:
+```shell
+mkdir -p /c/src
+cd /c/src
+git clone --recurse-submodules -b v1.74.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc
+```
+
+Now in This project run in CMD:
+```cmd
+md c:\TEMP
+cd /d "c:\src"
+build_grpc.cmd c:\TEMP
+```
+
+Finally in this project run in CMD:
+```cmd
+rebuild_windows.cmd
+```
+
+On success, target binaries are in `c:\TEMP\build\grpc-hello\Release`.
+
 
 ## Exploring Server reflection
 
