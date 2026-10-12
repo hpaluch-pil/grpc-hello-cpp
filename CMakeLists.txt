@@ -88,8 +88,10 @@ target_link_libraries(hw_grpc_proto
 foreach(_target
   greeter_client greeter_server)
   add_executable(${_target} "${_target}.cc")
-  # we use -DLINUX for any other system than Windows
-  target_compile_definitions(${_target} PUBLIC LINUX)
+  if(UNIX)
+    # we use -DLINUX for any other system than Windows
+    target_compile_definitions(${_target} PUBLIC LINUX)
+  endif()
   target_link_libraries(${_target}
     hw_grpc_proto
     ${_REFLECTION}
