@@ -190,6 +190,8 @@ git clone --recurse-submodules -b v1.74.0 --depth 1 --shallow-submodules https:/
 
 Now in This project run in CMD:
 ```cmd
+REM for Debug build use build_grpc_debug.cmd
+REM copy build_grpc.cmd from this folder to c:\src and:
 md c:\TEMP
 cd /d "c:\src"
 build_grpc.cmd c:\TEMP
