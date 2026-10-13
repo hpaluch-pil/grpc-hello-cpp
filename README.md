@@ -165,11 +165,11 @@ You can build binaries using prepared build script:
 ```
 Now in one terminal run server:
 ```bash
-~/tmp/build-grpc/greeter_server
+~/tmp/build/grpc-hello/greeter_server
 ```
 In another one run client:
 ```bash
-~/tmp/build-grpc/greeter_client
+~/tmp/build/grpc-hello/greeter_client
 ```
 You should see debug messages on both client and server.
 
