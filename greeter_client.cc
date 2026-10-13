@@ -22,6 +22,10 @@
 
 #ifdef LINUX
 #include <time.h>
+#else
+#define WIN32_LEAN_AND_MEAN // gRPC will completely choke with full headers...
+#define NOMINMAX // avoid min()/max() collision with std:: templates
+#include <windows.h>
 #endif
 
 #include <grpcpp/grpcpp.h>
@@ -78,6 +82,9 @@ class GreeterClient {
 int main(int argc, char** argv) {
 #ifdef LINUX
   struct timespec startTime, endTime;
+#else
+    LARGE_INTEGER timerFreq, startTime, endTime;
+    QueryPerformanceFrequency(&timerFreq); // FIXME: error handling
 #endif
   // Instantiate the client. It requires a channel, out of which the actual RPCs
   // are created. This channel models a connection to an endpoint specified by
@@ -110,16 +117,23 @@ int main(int argc, char** argv) {
   std::string user("world");
 #ifdef LINUX
   clock_gettime(CLOCK_MONOTONIC,&startTime);
+#else
+  QueryPerformanceCounter(&startTime);  // FIXME: error handling
 #endif
   std::string reply = greeter.SayHello(user);
 #ifdef LINUX
   clock_gettime(CLOCK_MONOTONIC,&endTime);
+#else
+  QueryPerformanceCounter(&endTime);  // FIXME: error handling
 #endif
   std::cout << "Greeter received: " << reply << std::endl;
 #ifdef LINUX
   uint64_t time_us = (((endTime.tv_sec * 1000000000ULL + endTime.tv_nsec)
                     -(startTime.tv_sec * 1000000000ULL + startTime.tv_nsec))/1000ULL);
-  std::cout << "gRPC call took: " << time_us << " [us]" << std::endl;
+#else
+  uint64_t time_us = ((endTime.QuadPart - startTime.QuadPart) * 1000000ULL / timerFreq.QuadPart);
 #endif
+  std::cout << "gRPC call took: " << time_us << " [us]" << std::endl;
+
   return 0;
 }
