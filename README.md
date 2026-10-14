@@ -178,6 +178,12 @@ The `greeter_client` supports following optional arguments:
 
 ### Setup with CMake: Windows
 
+> WARNING!
+> Debug builds are broken: while gRPC builds happily in Debug mode the `grpc++_reflection` always
+> builds in Release mode. It causes fatal build error when linking it to this project...
+> Error looks like: `LNK2038 mismatch detected for '_ITERATOR_DEBUG_LEVEL': value '2' doesn't match value '0' in greeter_client.obj`
+> I found no way how to fix it and official Issue is not helpful: https://github.com/grpc/grpc/issues/23326
+
 You need to install:
 * CMake, tested version: 3.20.2
 * Visual Studio 2019 with `C++ Desktop Workload`
@@ -193,7 +199,6 @@ git clone --recurse-submodules -b v1.74.0 --depth 1 --shallow-submodules https:/
 
 Now in This project run in CMD:
 ```cmd
-REM for Debug build use build_grpc_debug.cmd
 REM copy build_grpc.cmd from this folder to c:\src and:
 md c:\TEMP
 cd /d "c:\src"
