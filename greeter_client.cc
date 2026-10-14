@@ -17,8 +17,12 @@
  */
 
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <string>
+// I'm old-fashioned C-String boy :-O
+#include <stdlib.h> // atoi(3)
+#include <string.h> // strncmp(3)
 
 #ifdef LINUX
 #include <time.h>
@@ -42,6 +46,36 @@ using grpc::Status;
 using helloworld::Greeter;
 using helloworld::HelloReply;
 using helloworld::HelloRequest;
+
+class MyStats {
+protected:
+  double fMin, fMax, fSum;
+  int iCount; // number of items
+public:
+  MyStats(): fMin(0.0), fMax(0.0), fSum(0.0),iCount(0){};
+  int AddItem(double fValue){
+    if (iCount==0){
+      fMin = fMax = fValue;
+    } else {
+      if (fMin > fValue)
+        fMin = fValue;
+      if (fMax < fValue)
+        fMax = fValue;
+    }
+    fSum += fValue;
+    return ++iCount;
+  }
+  int getCount(){ return iCount; }
+  std::string ToString(){
+    std::stringstream ss;
+    if (iCount <=0 ){
+      ss << "ERROR: No Data";
+    } else {
+      ss << "Min: " << fMin << " Avg: " << (fSum/iCount) << " Max: " << fMax << " Count: " << iCount << std::endl;
+    }
+    return ss.str();
+  }
+};
 
 class GreeterClient {
  public:
@@ -78,73 +112,80 @@ class GreeterClient {
   std::unique_ptr<Greeter::Stub> stub_;
 };
 
+static const int DEFAULT_REPEAT = 1;
 static const char *DEFAULT_TARGET = "localhost:50051";
 
 static int usage(char **argv)
 {
 	using namespace std;
 
-	cerr << "Usage: " << argv[0] << " [ --target=" << DEFAULT_TARGET << " ]" << endl;
+	cerr << "Usage: " << argv[0] << " [ --target=" << DEFAULT_TARGET << " ] [ --repeat=" << DEFAULT_REPEAT << " ]" << endl;
 	return EXIT_FAILURE;
 }
 
 int main(int argc, char** argv) {
+  static const char *ARG_TARGET = "--target=";
+  static const char *ARG_REPEAT = "--repeat=";
+  int i=0;
+  int iRepeat = DEFAULT_REPEAT;
+  MyStats rpcStats;
 #ifdef LINUX
   struct timespec startTime, endTime;
 #else
     LARGE_INTEGER timerFreq, startTime, endTime;
     QueryPerformanceFrequency(&timerFreq); // FIXME: error handling
 #endif
-  // Instantiate the client. It requires a channel, out of which the actual RPCs
-  // are created. This channel models a connection to an endpoint specified by
-  // the argument "--target=" which is the only expected argument.
   // We indicate that the channel isn't authenticated (use of
   // InsecureChannelCredentials()).
   std::string target_str(DEFAULT_TARGET);
-  std::string arg_str("--target");
-  if (argc > 1) {
-    std::string arg_val = argv[1];
-    size_t start_pos = arg_val.find(arg_str);
-    if (start_pos != std::string::npos) {
-      start_pos += arg_str.size();
-      if (arg_val[start_pos] == '=') {
-        target_str = arg_val.substr(start_pos + 1);
-      } else {
-        std::cerr << "The only correct argument syntax is --target="
-                  << std::endl;
+
+  for(i=1;i<argc;i++){
+    if(strncmp(argv[i],ARG_TARGET,strlen(ARG_TARGET))==0){
+      target_str=  argv[i]+strlen(ARG_TARGET);
+    } else if (strncmp(argv[i],ARG_REPEAT,strlen(ARG_REPEAT))==0){
+      char *repeat_str = argv[i]+strlen(ARG_REPEAT);
+      iRepeat = atoi(repeat_str);
+      if (iRepeat <= 0){
+        std::cerr << "ERROR: invalid repeat number: '" << argv[i] << "' converted to: " << iRepeat << std::endl;
         return usage(argv);
       }
     } else {
-      std::cerr << "The only acceptable argument is --target=" << std::endl;
+      std::cerr << "ERROR: Unknown argument: '" << argv[i] << "'" << std::endl;
       return usage(argv);
     }
   }
+
   std::cout << "Connecting to " << target_str << " ..." << std::endl;
   GreeterClient greeter(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
   // WARNING! When we are here we are not connected YET (failure will happen just at greeter.SayHello(...) later!
   std::string user("world");
+  for(i=0;i<iRepeat;i++){
 #ifdef LINUX
-  clock_gettime(CLOCK_MONOTONIC,&startTime);
+    clock_gettime(CLOCK_MONOTONIC,&startTime);
 #else
-  QueryPerformanceCounter(&startTime);  // FIXME: error handling
+    QueryPerformanceCounter(&startTime);  // FIXME: error handling
 #endif
-  std::string reply = greeter.SayHello(user);
-  if (!greeter.status.ok()){
-      std::cerr << "ERROR: RPC call failed with " << greeter.status.error_code()
-    		    << ": " << greeter.status.error_message() << std::endl;
-      return EXIT_FAILURE;
-  }
+    std::string reply = greeter.SayHello(user);
+    if (!greeter.status.ok()){
+        std::cerr << "ERROR: RPC call failed with " << greeter.status.error_code()
+              << ": " << greeter.status.error_message() << std::endl;
+        return EXIT_FAILURE;
+    }
 #ifdef LINUX
-  clock_gettime(CLOCK_MONOTONIC,&endTime);
-  uint64_t time_us = (((endTime.tv_sec * 1000000000ULL + endTime.tv_nsec)
+    clock_gettime(CLOCK_MONOTONIC,&endTime);
+    uint64_t time_us = (((endTime.tv_sec * 1000000000ULL + endTime.tv_nsec)
                     -(startTime.tv_sec * 1000000000ULL + startTime.tv_nsec))/1000ULL);
 #else
-  QueryPerformanceCounter(&endTime);  // FIXME: error handling
-  uint64_t time_us = ((endTime.QuadPart - startTime.QuadPart) * 1000000ULL / timerFreq.QuadPart);
+    QueryPerformanceCounter(&endTime);  // FIXME: error handling
+    uint64_t time_us = ((endTime.QuadPart - startTime.QuadPart) * 1000000ULL / timerFreq.QuadPart);
 #endif
-  std::cout << "Greeter received: " << reply << std::endl;
-  std::cout << "gRPC call took: " << time_us << " [us]" << std::endl;
-
+    std::cout << "Greeter received: " << reply << std::endl;
+    std::cout << "gRPC call #" << (i+1) << " took: " << (time_us/1000.0) << " [ms]" << std::endl;
+    rpcStats.AddItem(time_us / 1000.0);
+  }
+  if (rpcStats.getCount()>1){
+    std::cout << "gRPC call statistics [ms]: " << rpcStats.ToString() << std::endl;
+  }
   return EXIT_SUCCESS;
 }

@@ -172,6 +172,9 @@ In another one run client:
 ~/tmp/build/grpc-hello/greeter_client
 ```
 You should see debug messages on both client and server.
+The `greeter_client` supports following optional arguments:
+- `--target=REMOTE_IP:REMOTE_PORT` - connect to other gRPC server and port, default is `localhost:50051`
+- `--repeat=NUMBER_OF_CALLS` - number of gRPC calls (loop), default is `1`
 
 ### Setup with CMake: Windows
 
