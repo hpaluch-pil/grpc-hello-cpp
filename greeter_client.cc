@@ -45,8 +45,9 @@ using helloworld::HelloRequest;
 
 class GreeterClient {
  public:
+  Status status; // allow caller to see all gory details when things fail
   GreeterClient(std::shared_ptr<Channel> channel)
-      : stub_(Greeter::NewStub(channel)) {}
+      : stub_(Greeter::NewStub(channel)), status() {}
 
   // Assembles the client's payload, sends it and presents the response back
   // from the server.
@@ -63,21 +64,29 @@ class GreeterClient {
     ClientContext context;
 
     // The actual RPC.
-    Status status = stub_->SayHello(&context, request, &reply);
+    status = stub_->SayHello(&context, request, &reply);
 
     // Act upon its status.
     if (status.ok()) {
       return reply.message();
     } else {
-      std::cout << status.error_code() << ": " << status.error_message()
-                << std::endl;
-      return "RPC failed";
+      return "RPC failed"; // error now handled by caller
     }
   }
 
  private:
   std::unique_ptr<Greeter::Stub> stub_;
 };
+
+static const char *DEFAULT_TARGET = "localhost:50051";
+
+static int usage(char **argv)
+{
+	using namespace std;
+
+	cerr << "Usage: " << argv[0] << " [ --target=" << DEFAULT_TARGET << " ]" << endl;
+	return EXIT_FAILURE;
+}
 
 int main(int argc, char** argv) {
 #ifdef LINUX
@@ -91,7 +100,7 @@ int main(int argc, char** argv) {
   // the argument "--target=" which is the only expected argument.
   // We indicate that the channel isn't authenticated (use of
   // InsecureChannelCredentials()).
-  std::string target_str;
+  std::string target_str(DEFAULT_TARGET);
   std::string arg_str("--target");
   if (argc > 1) {
     std::string arg_val = argv[1];
@@ -101,19 +110,19 @@ int main(int argc, char** argv) {
       if (arg_val[start_pos] == '=') {
         target_str = arg_val.substr(start_pos + 1);
       } else {
-        std::cout << "The only correct argument syntax is --target="
+        std::cerr << "The only correct argument syntax is --target="
                   << std::endl;
-        return 0;
+        return usage(argv);
       }
     } else {
-      std::cout << "The only acceptable argument is --target=" << std::endl;
-      return 0;
+      std::cerr << "The only acceptable argument is --target=" << std::endl;
+      return usage(argv);
     }
-  } else {
-    target_str = "localhost:50051";
   }
+  std::cout << "Connecting to " << target_str << " ..." << std::endl;
   GreeterClient greeter(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
+  // WARNING! When we are here we are not connected YET (failure will happen just at greeter.SayHello(...) later!
   std::string user("world");
 #ifdef LINUX
   clock_gettime(CLOCK_MONOTONIC,&startTime);
@@ -121,19 +130,21 @@ int main(int argc, char** argv) {
   QueryPerformanceCounter(&startTime);  // FIXME: error handling
 #endif
   std::string reply = greeter.SayHello(user);
+  if (!greeter.status.ok()){
+      std::cerr << "ERROR: RPC call failed with " << greeter.status.error_code()
+    		    << ": " << greeter.status.error_message() << std::endl;
+      return EXIT_FAILURE;
+  }
 #ifdef LINUX
   clock_gettime(CLOCK_MONOTONIC,&endTime);
-#else
-  QueryPerformanceCounter(&endTime);  // FIXME: error handling
-#endif
-  std::cout << "Greeter received: " << reply << std::endl;
-#ifdef LINUX
   uint64_t time_us = (((endTime.tv_sec * 1000000000ULL + endTime.tv_nsec)
                     -(startTime.tv_sec * 1000000000ULL + startTime.tv_nsec))/1000ULL);
 #else
+  QueryPerformanceCounter(&endTime);  // FIXME: error handling
   uint64_t time_us = ((endTime.QuadPart - startTime.QuadPart) * 1000000ULL / timerFreq.QuadPart);
 #endif
+  std::cout << "Greeter received: " << reply << std::endl;
   std::cout << "gRPC call took: " << time_us << " [us]" << std::endl;
 
-  return 0;
+  return EXIT_SUCCESS;
 }
