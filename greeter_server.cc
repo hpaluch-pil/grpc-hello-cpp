@@ -58,6 +58,10 @@ void RunServer() {
   std::string server_address("0.0.0.0:50051");
   GreeterServiceImpl service;
 
+#ifdef __VERSION__
+  std::cout << "Build with: " << __VERSION__ << std::endl;
+#endif
+  std::cout << "Using gRPC Version: " << grpc::Version() << std::endl;
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
   ServerBuilder builder;

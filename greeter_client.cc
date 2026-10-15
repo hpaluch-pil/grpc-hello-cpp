@@ -155,6 +155,10 @@ int main(int argc, char** argv) {
     }
   }
 
+#ifdef __VERSION__
+  std::cout << "Build with: " << __VERSION__ << std::endl;
+#endif
+  std::cout << "Using gRPC Version: " << grpc::Version() << std::endl;
   std::cout << "Connecting to " << target_str << " ..." << std::endl;
   GreeterClient greeter(
       grpc::CreateChannel(target_str, grpc::InsecureChannelCredentials()));
