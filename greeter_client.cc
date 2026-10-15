@@ -155,6 +155,9 @@ int main(int argc, char** argv) {
     }
   }
 
+#ifdef _MSC_VER
+  std::cout << "Build with MSVC: " << _MSC_VER/100.0 << std::endl;
+#endif
 #ifdef __VERSION__
   std::cout << "Build with: " << __VERSION__ << std::endl;
 #endif
