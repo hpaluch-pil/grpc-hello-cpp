@@ -59,12 +59,14 @@ if [ -n "$grpc_install_dir" ]; then
 	args="$args -DCMAKE_PREFIX_PATH=$grpc_install_dir/lib"
 	PATH="$grpc_install_dir/bin:$PATH"
 else
-	# system install will use pkg-config tool:
+	# system install will use pkg-config tool - often required for Protobuf (missing *.cmake configs)
 	args="$args -DUSE_PKG_CONFIG=ON"
 fi
 
 args="$args -DCMAKE_BUILD_TYPE=$build_type"
 src=$( readlink -f $( dirname $0 ) )
+cd "$src"
+echo "Sources are in: `pwd`"
 set -x
 # always use hardcoded prefix to avoid disaster (rm -rf /) when variable is empty
 rm -rf cmake/build
