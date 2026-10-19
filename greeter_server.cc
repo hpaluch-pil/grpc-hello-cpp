@@ -19,6 +19,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string.h> // Sorry, but I hate verbose C++ string handling
 
 #include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpcpp/grpcpp.h>
@@ -38,11 +39,15 @@ using helloworld::Greeter;
 using helloworld::HelloReply;
 using helloworld::HelloRequest;
 
+static bool bQuiet = false;
+
 // Logic and data behind the server's behavior.
 class GreeterServiceImpl final : public Greeter::Service {
   Status SayHello(ServerContext* context, const HelloRequest* request,
                   HelloReply* reply) override {
-    std::cout << "Server: Got message: '" << request->name() << "'" << std::endl;
+    if (!bQuiet) {
+      std::cout << "Server: Got message: '" << request->name() << "'" << std::endl;
+    }
     std::string prefix("Hello ");
     reply->set_message(prefix + request->name());
     return Status::OK;
@@ -53,6 +58,13 @@ void RunServer() {
   std::string server_address("0.0.0.0:50051");
   GreeterServiceImpl service;
 
+#ifdef _MSC_VER
+  std::cout << "Build with MSVC: " << _MSC_VER / 100.0 << std::endl;
+#endif
+#ifdef __VERSION__
+  std::cout << "Build with: " << __VERSION__ << std::endl;
+#endif
+  std::cout << "Using gRPC Version: " << grpc::Version() << std::endl;
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
   ServerBuilder builder;
@@ -71,7 +83,14 @@ void RunServer() {
 }
 
 int main(int argc, char** argv) {
+  for (int i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "-q") == 0) {
+      bQuiet = true;
+    } else {
+      std::cerr << "Unexpected argument: '" << argv[i] << "'" << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
   RunServer();
-
-  return 0;
+  return EXIT_SUCCESS;
 }

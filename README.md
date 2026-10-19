@@ -132,7 +132,7 @@ WARNING! It was really difficult to find right commit in BoringSSL, that will:
 Finally I found right version of BoringSSL  - see bottom or WORKSPACE
 file for details
 
-### Setup with cmake
+### Setup with cmake: Linux
 
 Tested OS: `Fedora 44`
 
@@ -159,22 +159,141 @@ git clone https://github.com/hpaluch-pil/grpc-hello-cpp.git
 cd grpc-hello-cpp
 ```
 
-Now you can build binaries using standard cmake commands:
+You can build binaries using prepared build script:
 ```bash
-rm -rf ~/tmp/build-grpc
-mkdir -p ~/tmp/build-grpc
-cmake -B ~/tmp/build-grpc
-make -C ~/tmp/build-grpc VERBOSE=1
+./rebuild_linux.sh
 ```
 Now in one terminal run server:
 ```bash
-~/tmp/build-grpc/greeter_server
+~/tmp/build/grpc-hello/greeter_server
 ```
 In another one run client:
 ```bash
-~/tmp/build-grpc/greeter_client
+~/tmp/build/grpc-hello/greeter_client
 ```
 You should see debug messages on both client and server.
+The `greeter_client` supports following optional arguments:
+- `--target=REMOTE_IP:REMOTE_PORT` - connect to other gRPC server and port, default is `localhost:50051`
+- `--repeat=NUMBER_OF_CALLS` - number of gRPC calls (loop), default is `1`
+
+### Setup with CMake: gRPC build from source
+
+To use native (Host = Target) non-system gRPC (build and installed from source) you can use
+my GitHub project: https://github.com/hpaluch-pil/grpc-build-scripts
+
+To perform native build of gRPC do this:
+```shell
+sudo apt-get install git-core # Debian/Ubuntu
+sudo dnf     install git-core # Fedora
+sudo zypper  in      git-core # openSUSE LEAP
+
+mkdir -p ~/projects
+cd ~/projects
+git clone https://github.com/hpaluch-pil/grpc-build-scripts.git
+cd grpc-build-scripts
+
+# on Debian and/or Ubuntu:
+common/01-install-apt.sh
+# on Fedora:
+common/01-install-dnf.sh
+# on openSUSE LEAP:
+common/01-install-zypper.sh
+
+# continued - common:
+# line below will checkout gRPC sources into ~/src/grpc
+common/02-clone-source.sh
+# warning: it purges existing gRPC installation in /opt/grpc-VERSION!
+common/03-prepare-install-basedir.sh
+
+# perform native build
+native/10-build-native.sh
+native/30-example-native.sh
+```
+
+Finally run our Linux build script with native gRPC installation directory argument,
+for example:
+
+```shell
+./rebuild_linux.sh --grpc-install-dir /opt/grpc-v1.82.0/x86_64-redhat-linux
+```
+
+Native binaries are build under `cmake/build/` directory.
+
+### Setup with CMake: cross-build aarch64
+
+First you have to cross-build gRPC for aarch64, using my 
+GitHub project: https://github.com/hpaluch-pil/grpc-build-scripts
+
+To cross-build gRPC for aarch64 do this:
+```shell
+sudo apt-get install git-core # Debian/Ubuntu
+sudo dnf     install git-core # Fedora
+sudo zypper  in      git-core # openSUSE LEAP
+
+mkdir -p ~/projects
+cd ~/projects
+git clone https://github.com/hpaluch-pil/grpc-build-scripts.git
+cd grpc-build-scripts
+
+# on Debian and/or Ubuntu:
+common/01-install-apt.sh
+# on Fedora:
+common/01-install-dnf.sh
+# on openSUSE LEAP:
+common/01-install-zypper.sh
+
+# continued - common:
+# line below will checkout gRPC sources into ~/src/grpc
+common/02-clone-source.sh
+# warning: it purges existing gRPC installation in /opt/grpc-VERSION!
+common/03-prepare-install-basedir.sh
+
+cross-aarch64/05-install-gcc11-aarch64.sh
+cross-aarch64/10-build-host.sh
+cross-aarch64/20-build-aarch64.sh
+cross-aarch64/30-example-aarch64.sh
+```
+
+Finally run script `./cross-build-aarch64.sh` in this folder to 
+cross-build this example for aarch64. Binaries
+will be under `cmake/build-aarch64-none-linux-gnu/` folder.
+
+### Setup with CMake: Windows
+
+> WARNING!
+> Debug builds are broken: while gRPC builds happily in Debug mode the `grpc++_reflection` always
+> builds in Release mode. It causes fatal build error when linking it to this project...
+> Error looks like: `LNK2038 mismatch detected for '_ITERATOR_DEBUG_LEVEL': value '2' doesn't match value '0' in greeter_client.obj`
+> I found no way how to fix it and official Issue is not helpful: https://github.com/grpc/grpc/issues/23326
+
+You need to install:
+* CMake, tested version: 3.20.2
+* Visual Studio 2019 with `C++ Desktop Workload`
+* Git for Windows, tested versino 2.53 (but DO NOT USE version 2.54! - it crashes while checking out gRPC,
+  see https://github.com/git-for-windows/git/issues/6210)
+
+First in Git Bash build and install gRPC:
+```shell
+mkdir -p /c/src
+cd /c/src
+git clone --recurse-submodules -b v1.74.0 --depth 1 --shallow-submodules https://github.com/grpc/grpc
+```
+
+Now in This project run in CMD:
+```cmd
+REM copy build_grpc.cmd from this folder to c:\src and:
+md c:\TEMP
+cd /d "c:\src"
+build_grpc.cmd c:\TEMP
+```
+
+Finally in this project run in CMD:
+```cmd
+rebuild_windows.cmd
+```
+
+On success, target binaries are in `c:\TEMP\build\grpc-hello\Release`.
+
 
 ## Exploring Server reflection
 

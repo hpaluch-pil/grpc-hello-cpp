@@ -23,6 +23,25 @@ cmake_minimum_required(VERSION 3.5.1)
 
 project(HelloWorld C CXX)
 
+# pkg-config is used when there is gRPC installed in Linux system
+option(USE_PKG_CONFIG "pkg-config tool to find packages" OFF)
+# detect program by finding it in PATH
+
+
+# see: https://www.alcf.anl.gov/sites/default/files/2020-07/ANL%202020%20CMake%20%26%26%20Friends%20Part1_0.pdf
+set(default_build_type "Release")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  # IMPORTANT: This applies only for Makefile and Ninja generators
+  # Visual Studio includes all build types in single generated Solution!
+  message(STATUS
+  "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+      STRING "Choose the type of build." FORCE)
+  # Set the possible values for build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 set (CMAKE_CXX_STANDARD 17)
 
 # available in system as:
@@ -30,26 +49,37 @@ set (CMAKE_CXX_STANDARD 17)
 # openSUSE package:  cmake-full
 find_package(Threads REQUIRED)
 
-# Protobuf cmake package is directly provided by cmake:
-# /usr/share/cmake/Modules/FindProtobuf.cmake
-# openSUSE package:  cmake-full
-find_package(Protobuf REQUIRED)
+if(USE_PKG_CONFIG)
+  # many Linux distros simply do not provide .../lib/Protobuf*.cmake  but have only pkg-config
+  find_package(Protobuf REQUIRED)
+else()
+  option(protobuf_MODULE_COMPATIBLE TRUE)
+  # use *.cmake configuration - available when gRPC was installed from source
+  find_package(Protobuf CONFIG REQUIRED)
+endif()
 message(STATUS "Using protobuf ${Protobuf_VERSION}")
 set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
-set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
 
-# OpenSUSE has no cmake package for GRPC
-# thus we must fallback to pkg-config (will be not portable to Windows...)
-find_package(PkgConfig REQUIRED)
-pkg_search_module(GRPC REQUIRED grpc)
-message(STATUS "found grpc ${GRPC_VERSION}, libraries: '${GRPC_LIBRARIES}'")
-pkg_search_module(GRPCPP REQUIRED grpc++)
-message(STATUS "found grpc++ ${GRPCPP_VERSION}, libraries: '${GRPCPP_LIBRARIES}'")
-set(_GRPC_GRPCPP "${GRPCPP_LIBRARIES}")
+if(CMAKE_CROSSCOMPILING)
+  find_program(_PROTOBUF_PROTOC protoc)
+else()
+  set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
+endif()
 
-set(_REFLECTION grpc++_reflection)
-#set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
-find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
+if(NOT UNIX)
+  set(GRPC_INSTALL_DIR "c:/libs/grpc")
+endif()
+# we must always use *.cmake configuration for gRPC otherwise may vars will be not defined
+find_package(gRPC CONFIG REQUIRED)
+message(STATUS "Using gRPC ${gRPC_VERSION}")
+
+set(_GRPC_GRPCPP gRPC::grpc++ )
+set(_REFLECTION gRPC::grpc++_reflection)
+if(CMAKE_CROSSCOMPILING)
+  find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
+else()
+  set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+endif()
 
 # Proto file
 get_filename_component(hw_proto "helloworld.proto" ABSOLUTE)
@@ -88,6 +118,12 @@ target_link_libraries(hw_grpc_proto
 foreach(_target
   greeter_client greeter_server)
   add_executable(${_target} "${_target}.cc")
+  if(UNIX)
+    # we use -DLINUX for any other system than Windows
+    target_compile_definitions(${_target} PUBLIC LINUX)
+  else()
+    target_link_directories(${_target} PUBLIC "${GRPC_INSTALL_DIR}/lib")
+  endif()
   target_link_libraries(${_target}
     hw_grpc_proto
     ${_REFLECTION}
