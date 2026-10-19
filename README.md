@@ -176,6 +176,49 @@ The `greeter_client` supports following optional arguments:
 - `--target=REMOTE_IP:REMOTE_PORT` - connect to other gRPC server and port, default is `localhost:50051`
 - `--repeat=NUMBER_OF_CALLS` - number of gRPC calls (loop), default is `1`
 
+### Setup with CMake: gRPC build from source
+
+To use native (Host = Target) non-system gRPC (build and installed from source) you can use
+my GitHub project: https://github.com/hpaluch-pil/grpc-build-scripts
+
+To perform native build of gRPC do this:
+```shell
+sudo apt-get install git-core # Debian/Ubuntu
+sudo dnf     install git-core # Fedora
+sudo zypper  in      git-core # openSUSE LEAP
+
+mkdir -p ~/projects
+cd ~/projects
+git clone https://github.com/hpaluch-pil/grpc-build-scripts.git
+cd grpc-build-scripts
+
+# on Debian and/or Ubuntu:
+common/01-install-apt.sh
+# on Fedora:
+common/01-install-dnf.sh
+# on openSUSE LEAP:
+common/01-install-zypper.sh
+
+# continued - common:
+# line below will checkout gRPC sources into ~/src/grpc
+common/02-clone-source.sh
+# warning: it purges existing gRPC installation in /opt/grpc-VERSION!
+common/03-prepare-install-basedir.sh
+
+# perform native build
+native/10-build-native.sh
+native/30-example-native.sh
+```
+
+Finally run our Linux build script with native gRPC installation directory argument,
+for example:
+
+```shell
+./rebuild_linux.sh --grpc-install-dir /opt/grpc-v1.82.0/x86_64-redhat-linux
+```
+
+Native binaries are build under `cmake/build/` directory.
+
 ### Setup with CMake: cross-build aarch64
 
 First you have to cross-build gRPC for aarch64, using my 

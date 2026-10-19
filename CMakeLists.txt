@@ -23,6 +23,9 @@ cmake_minimum_required(VERSION 3.5.1)
 
 project(HelloWorld C CXX)
 
+# pkg-config is used when there is gRPC installed in Linux system
+option(USE_PKG_CONFIG "pkg-config tool to find packages" OFF)
+
 # see: https://www.alcf.anl.gov/sites/default/files/2020-07/ANL%202020%20CMake%20%26%26%20Friends%20Part1_0.pdf
 set(default_build_type "Release")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -47,7 +50,7 @@ find_package(Threads REQUIRED)
 # Protobuf cmake package is directly provided by cmake:
 # /usr/share/cmake/Modules/FindProtobuf.cmake
 # openSUSE package:  cmake-full
-if(UNIX AND NOT CMAKE_CROSSCOMPILING)
+if(USE_PKG_CONFIG)
   find_package(Protobuf REQUIRED)
 else()
   option(protobuf_MODULE_COMPATIBLE TRUE)
@@ -63,13 +66,13 @@ else()
 endif()
 
 if(UNIX)
-  if(CMAKE_CROSSCOMPILING)
-    find_package(gRPC CONFIG REQUIRED)
-  else()
+  if(USE_PKG_CONFIG)
     # OpenSUSE has no cmake package for GRPC
     # thus we must fallback to pkg-config (will be not portable to Windows...)
     find_package(PkgConfig REQUIRED)
     pkg_search_module(GRPC REQUIRED grpc)
+  else()
+    find_package(gRPC CONFIG REQUIRED)
   endif()
   message(STATUS "found grpc ${GRPC_VERSION}, libraries: '${GRPC_LIBRARIES}'")
 
