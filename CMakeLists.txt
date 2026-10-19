@@ -47,7 +47,7 @@ find_package(Threads REQUIRED)
 # Protobuf cmake package is directly provided by cmake:
 # /usr/share/cmake/Modules/FindProtobuf.cmake
 # openSUSE package:  cmake-full
-if(UNIX)
+if(UNIX AND NOT CMAKE_CROSSCOMPILING)
   find_package(Protobuf REQUIRED)
 else()
   option(protobuf_MODULE_COMPATIBLE TRUE)
@@ -55,29 +55,42 @@ else()
 endif()
 message(STATUS "Using protobuf ${Protobuf_VERSION}")
 set(_PROTOBUF_LIBPROTOBUF protobuf::libprotobuf)
-set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
+
+if(CMAKE_CROSSCOMPILING)
+  find_program(_PROTOBUF_PROTOC protoc)
+else()
+  set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
+endif()
 
 if(UNIX)
-  # OpenSUSE has no cmake package for GRPC
-  # thus we must fallback to pkg-config (will be not portable to Windows...)
-  find_package(PkgConfig REQUIRED)
-  pkg_search_module(GRPC REQUIRED grpc)
+  if(CMAKE_CROSSCOMPILING)
+    find_package(gRPC CONFIG REQUIRED)
+  else()
+    # OpenSUSE has no cmake package for GRPC
+    # thus we must fallback to pkg-config (will be not portable to Windows...)
+    find_package(PkgConfig REQUIRED)
+    pkg_search_module(GRPC REQUIRED grpc)
+  endif()
   message(STATUS "found grpc ${GRPC_VERSION}, libraries: '${GRPC_LIBRARIES}'")
-  pkg_search_module(GRPCPP REQUIRED grpc++)
-  message(STATUS "found grpc++ ${GRPCPP_VERSION}, libraries: '${GRPCPP_LIBRARIES}'")
-  set(_GRPC_GRPCPP "${GRPCPP_LIBRARIES}")
+
+  #pkg_search_module(GRPCPP REQUIRED grpc++)
+  #message(STATUS "found grpc++ ${GRPCPP_VERSION}, libraries: '${GRPCPP_LIBRARIES}'")
+  #set(_GRPC_GRPCPP "${GRPCPP_LIBRARIES}")
 else()
   set(GRPC_INSTALL_DIR "c:/libs/grpc")
   # on Windows use CMake package
   # Looks for gRPCConfig.cmake file installed by gRPC's cmake installation.
   find_package(gRPC CONFIG REQUIRED)
   message(STATUS "Using gRPC ${gRPC_VERSION}")
-  set(_GRPC_GRPCPP gRPC::grpc++ )
 endif()
 
-set(_REFLECTION grpc++_reflection)
-#set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
-find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
+set(_GRPC_GRPCPP gRPC::grpc++ )
+set(_REFLECTION gRPC::grpc++_reflection)
+if(CMAKE_CROSSCOMPILING)
+  find_program(_GRPC_CPP_PLUGIN_EXECUTABLE grpc_cpp_plugin)
+else()
+  set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+endif()
 
 # Proto file
 get_filename_component(hw_proto "helloworld.proto" ABSOLUTE)
